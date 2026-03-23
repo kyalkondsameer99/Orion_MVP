@@ -71,8 +71,9 @@ def persist_recommendation(
 def list_recommendations(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     workflow: Annotated[RecommendationWorkflowService, Depends(get_recommendation_workflow_service)],
-    status: RecommendationStatus | None = Query(
+    workflow_status: RecommendationStatus | None = Query(
         default=None,
+        alias="status",
         description="Filter by workflow status (e.g. pending, approved).",
     ),
     symbol: str | None = Query(
@@ -82,7 +83,12 @@ def list_recommendations(
     ),
     limit: int = Query(default=50, ge=1, le=100),
 ) -> RecommendationListResponse:
-    return workflow.list_recommendations(user_id, status=status, symbol=symbol, limit=limit)
+    return workflow.list_recommendations(
+        user_id,
+        workflow_status=workflow_status,
+        symbol=symbol,
+        limit=limit,
+    )
 
 
 @router.post(

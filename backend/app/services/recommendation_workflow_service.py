@@ -169,7 +169,7 @@ class RecommendationWorkflowService:
         self,
         user_id: uuid.UUID,
         *,
-        status: RecommendationStatus | None,
+        workflow_status: RecommendationStatus | None,
         symbol: str | None,
         limit: int,
     ) -> RecommendationListResponse:
@@ -181,8 +181,8 @@ class RecommendationWorkflowService:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
 
         stmt = select(Recommendation).where(Recommendation.user_id == user_id)
-        if status is not None:
-            stmt = stmt.where(Recommendation.status == status)
+        if workflow_status is not None:
+            stmt = stmt.where(Recommendation.status == workflow_status)
         if sym_filter is not None:
             stmt = stmt.where(Recommendation.symbol == sym_filter)
         stmt = (
