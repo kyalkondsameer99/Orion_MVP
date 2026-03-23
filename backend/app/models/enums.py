@@ -50,6 +50,7 @@ class OrderStatus(str, Enum):
     """Broker-agnostic order lifecycle."""
 
     NEW = "new"
+    SUBMITTED = "submitted"
     PENDING = "pending"
     PARTIALLY_FILLED = "partially_filled"
     FILLED = "filled"

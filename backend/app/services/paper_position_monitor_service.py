@@ -135,6 +135,9 @@ class PaperPositionMonitorService:
         Poll marks for all open paper positions, refresh unrealized PnL, emit exit recs.
 
         `price_overrides` maps normalized symbol -> mark (tests / deterministic runs).
+
+        Does not commit. The caller must ``commit()`` the same ``Session`` when the
+        cycle succeeds (e.g. ``run_position_monitor_cycle`` in ``app.tasks.position_monitor``).
         """
         result = PaperPositionMonitorResult()
         overrides = price_overrides or {}
@@ -193,6 +196,12 @@ class PaperPositionMonitorService:
         stop_loss: Decimal | None,
         take_profit: Decimal | None,
     ) -> None:
+        """
+        Stage a new pending recommendation for SL/TP exit.
+
+        Uses ``flush()`` so the row exists in-session before the caller's ``commit()``;
+        committing here would break one atomic transaction for the whole ``run_cycle``.
+        """
         exit_side = _exit_order_side(position.side)
         if trigger == "stop_loss":
             detail = f"Stop loss level reached (mark {mark}, stop {stop_loss})."
@@ -221,3 +230,4 @@ class PaperPositionMonitorService:
             engine_snapshot={"trigger": trigger, "mark": str(mark), "position_id": str(position.id)},
         )
         db.add(rec)
+        db.flush()

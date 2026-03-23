@@ -360,6 +360,7 @@ class RecommendationWorkflowService:
             resource_id=rec.id,
             payload={},
         )
+        self._db.flush()
         self._db.commit()
         self._db.refresh(rec)
         return RecommendationActionResult(
@@ -427,7 +428,7 @@ class RecommendationWorkflowService:
             raise HTTPException(status_code=502, detail=str(e)) from e
 
         order.submitted_at = dt.datetime.now(tz=dt.timezone.utc)
-        order.status = OrderStatus.PENDING
+        order.status = OrderStatus.SUBMITTED
         prev = rec.status
         rec.status = RecommendationStatus.SUBMITTED
         _transition(
@@ -444,6 +445,7 @@ class RecommendationWorkflowService:
             resource_id=rec.id,
             payload={"broker_order_id": out.id},
         )
+        self._db.flush()
         self._db.commit()
         return RecommendationSubmitResult(
             recommendation_id=rec.id,

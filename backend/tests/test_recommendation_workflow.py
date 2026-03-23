@@ -12,7 +12,7 @@ from app.api.deps import get_recommendation_workflow_service
 from app.broker.service import BrokerService
 from app.main import app
 from app.models.audit_log import AuditLog
-from app.models.enums import RecommendationStatus
+from app.models.enums import OrderStatus, RecommendationStatus
 from app.models.recommendation import Recommendation
 from app.models.recommendation_status_event import RecommendationStatusEvent
 from app.models.trade_order import TradeOrder
@@ -291,6 +291,10 @@ def test_submit_after_approve_with_mock_broker(
         rec = workflow_db_session.get(Recommendation, rid)
         assert rec is not None
         assert rec.status == RecommendationStatus.SUBMITTED
+
+        orders = workflow_db_session.scalars(select(TradeOrder).where(TradeOrder.recommendation_id == rid)).all()
+        assert len(orders) == 1
+        assert orders[0].status == OrderStatus.SUBMITTED
 
         ev = workflow_db_session.scalars(
             select(RecommendationStatusEvent).where(RecommendationStatusEvent.recommendation_id == rid)
